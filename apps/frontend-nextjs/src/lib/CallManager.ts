@@ -150,11 +150,14 @@ export class CallManager {
   }
 
   handleIncomingCall(data: Record<string, unknown>) {
-    const { from, fromName, callType } = data as {
+    const { from, fromName, callType, to } = data as {
       from: string;
       fromName: string;
       callType: "audio" | "video";
+      to: string;
     };
+    if (to !== this.playerId) return;
+
     this.currentIncomingCall = { from, fromName, callType };
 
     window.dispatchEvent(
@@ -287,15 +290,18 @@ export class CallManager {
   }
 
   handleCallResponse(data: Record<string, unknown>) {
-    const { from, accepted } = data as { from: string; accepted: boolean };
+    const { from, to, accepted } = data as { from: string; to: string; accepted: boolean };
+    if (to !== this.playerId) return;
     if (!accepted) this.cleanupCall(from);
   }
 
   async handleWebRTCSignal(data: Record<string, unknown>) {
-    const { from, data: signalData } = data as {
+    const { from, to, data: signalData } = data as {
       from: string;
+      to: string;
       data: { type: string; sdp?: string; candidate?: RTCIceCandidateInit };
     };
+    if (to !== this.playerId) return;
 
     try {
       if (signalData.type === "offer") {
@@ -338,7 +344,8 @@ export class CallManager {
   }
 
   handleCallEnded(data: Record<string, unknown>) {
-    const { from } = data as { from: string };
+    const { from, to } = data as { from: string; to?: string };
+    if (to && to !== this.playerId) return;
     this.cleanupCall(from);
   }
 
