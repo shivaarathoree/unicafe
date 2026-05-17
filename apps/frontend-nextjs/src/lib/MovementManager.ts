@@ -225,7 +225,7 @@ export class MovementManager {
     // Subtle bounce effect when running
     if (this.isMoving && !this.wasMoving) {
       // Started moving
-      this.scene.tweens.killTweensOf(this.player, "scaleY");
+      this.scene.tweens.killTweensOf(this.player);
     }
     if (!this.isMoving && this.wasMoving) {
       // Just stopped – tiny squish
