@@ -43,7 +43,8 @@ function JoinContent() {
   useEffect(() => {
     if (!roomId) { setError("No room ID found in link"); setLoading(false); return; }
 
-    fetch(`/api/rooms/${roomId}`)
+    const BACKEND_URL = process.env.NEXT_PUBLIC_WS_URL || "";
+    fetch(`${BACKEND_URL}/api/rooms/${roomId}`)
       .then(r => r.json())
       .then(data => {
         setRoomInfo({

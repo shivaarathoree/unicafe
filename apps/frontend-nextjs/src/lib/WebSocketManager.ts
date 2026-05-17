@@ -38,9 +38,10 @@ export class WebSocketManager {
 
     // Connect to same origin (server.js handles both Next.js and Socket.io)
     const serverOrigin =
-      typeof window !== "undefined"
+      process.env.NEXT_PUBLIC_WS_URL ||
+      (typeof window !== "undefined"
         ? window.location.origin
-        : "http://localhost:3000";
+        : "http://localhost:3000");
 
     this.socket = io(serverOrigin, {
       transports: ["websocket", "polling"],

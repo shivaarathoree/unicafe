@@ -1,7 +1,7 @@
 import { AuthResponse, User, LoginRequest, RegisterRequest } from "./types";
 
 // All API calls go to same origin — the combined Next.js + Socket.io server
-const API_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_WS_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
 
 class ApiClient {
   private token: string | null = null;

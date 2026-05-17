@@ -54,7 +54,8 @@ export default function RoomPage() {
   useEffect(() => {
     setMounted(true);
     if (!name || !character) { router.replace(`/join?roomId=${roomId}`); return; }
-    fetch(`/api/rooms/${roomId}`)
+    const BACKEND_URL = process.env.NEXT_PUBLIC_WS_URL || "";
+    fetch(`${BACKEND_URL}/api/rooms/${roomId}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.name) setRoomName(d.name); })
       .catch(() => {});

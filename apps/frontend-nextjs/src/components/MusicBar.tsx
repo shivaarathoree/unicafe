@@ -192,9 +192,11 @@ export default function MusicBar({ myRole }: MusicBarProps) {
         ytPlayerRef.current?.destroy();
         ytPlayerRef.current = null;
 
-        const streamUrl = `/api/rooms/${roomId}/stream-mp3?t=${Date.now()}`;
+        const BACKEND_URL = process.env.NEXT_PUBLIC_WS_URL || "";
+        const streamUrl = `${BACKEND_URL}/api/rooms/${roomId}/stream-mp3?t=${Date.now()}`;
         if (mp3AudioRef.current) {
-          if (mp3AudioRef.current.src !== window.location.origin + streamUrl) {
+          const absoluteStreamUrl = streamUrl.startsWith("http") ? streamUrl : window.location.origin + streamUrl;
+          if (mp3AudioRef.current.src !== absoluteStreamUrl) {
             mp3AudioRef.current.src = streamUrl;
           }
           mp3AudioRef.current.volume = volume / 100;
@@ -255,7 +257,8 @@ export default function MusicBar({ myRole }: MusicBarProps) {
       });
       const duration = tempAudioObj.duration;
 
-      const response = await fetch(`/api/rooms/${roomId}/upload-mp3`, {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_WS_URL || "";
+      const response = await fetch(`${BACKEND_URL}/api/rooms/${roomId}/upload-mp3`, {
         method: "POST",
         body: file,
       });
