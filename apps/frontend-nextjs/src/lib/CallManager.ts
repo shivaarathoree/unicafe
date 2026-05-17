@@ -81,6 +81,14 @@ export class CallManager {
         callType,
       });
 
+      this.activeCalls.set(toId, {
+        peerId: toId,
+        peerName: peerName || "Unknown User",
+        callType,
+        status: "connecting",
+        startTime: Date.now(),
+      });
+
       window.dispatchEvent(new CustomEvent("callStarted"));
     } catch (error) {
       console.error("Failed to initiate call:", error);
@@ -193,8 +201,8 @@ export class CallManager {
       });
 
       this.wsManager.send("call_response", {
-        from,
-        to: this.playerId,
+        from: this.playerId,
+        to: from,
         accepted: true,
       });
 
@@ -276,8 +284,8 @@ export class CallManager {
   private declineCall() {
     if (this.currentIncomingCall) {
       this.wsManager.send("call_response", {
-        from: this.currentIncomingCall.from,
-        to: this.playerId,
+        from: this.playerId,
+        to: this.currentIncomingCall.from,
         accepted: false,
       });
       this.hideIncomingCallModal();

@@ -144,7 +144,8 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
     const handleSignal = async (e: Event) => {
       const msg = (e as CustomEvent).detail;
       if (!msg || msg.type !== "webrtc_signal") return;
-      const { from, data: sig } = msg.data || msg;
+      const { from, to, data: sig } = msg.data || msg;
+      if (to !== myId) return;
       if (!sig?.meetingSignal || !isInMeeting) return;
 
       let pc = peerConnectionsRef.current.get(from);

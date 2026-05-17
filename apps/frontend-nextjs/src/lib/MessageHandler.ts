@@ -72,6 +72,7 @@ export class MessageHandler {
         break;
       case "webrtc_signal":
         this.callManager.handleWebRTCSignal(msg.data);
+        window.dispatchEvent(new CustomEvent("wsMessage_webrtc_signal", { detail: msg }));
         break;
       case "call_ended":
         this.callManager.handleCallEnded(msg.data);
