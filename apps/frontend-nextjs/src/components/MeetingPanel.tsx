@@ -381,10 +381,11 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
           <div style={{
             flex: 1,
             display: "grid",
-            gridTemplateColumns: participants.length <= 1 ? "1fr" : participants.length <= 2 ? "repeat(2, 1fr)" : participants.length <= 4 ? "repeat(2, 1fr)" : "repeat(3, 1fr)",
-            gap: 8,
-            padding: 12,
-            alignContent: "start",
+            gridTemplateColumns: participants.length <= 1 ? "minmax(300px, 800px)" : "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: 16,
+            padding: 24,
+            alignContent: "center",
+            justifyContent: "center",
             overflowY: "auto",
           }}>
             {/* Local video tile */}
