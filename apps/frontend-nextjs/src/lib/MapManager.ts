@@ -47,6 +47,7 @@ const C = {
   potTerra:     0xc86432, // Terracotta plant pots
   leafGreen:    0x1e5631, // Rich evergreen leaves
   leafLight:    0x4c9a2a, // Soft ivy highlight
+  plantDark:    0x0a3b1a, // Deep shadow green for plants
   bookSpine1:   0xa32638, // Rich crimson
   bookSpine2:   0x224c75, // Deep sapphire
   bookSpine3:   0x1b4d3e, // Forest green
