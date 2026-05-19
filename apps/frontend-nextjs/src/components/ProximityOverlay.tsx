@@ -19,17 +19,13 @@ const PlayerCard = memo(function PlayerCard({
   x,
   y,
   isBelow,
-  onCall,
-  onChat,
-  onViewProfile,
+  onSendEmote,
 }: {
   player: NearbyPlayer;
   x: number;
   y: number;
   isBelow: boolean;
-  onCall: (id: string, type: "audio" | "video") => void;
-  onChat: () => void;
-  onViewProfile: (userId: string) => void;
+  onSendEmote: (emoji: string) => void;
 }) {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -101,36 +97,25 @@ const PlayerCard = memo(function PlayerCard({
           </div>
         </div>
 
-        <div className="flex justify-between gap-2 relative z-10">
-          {player.id && (
-            <button
-              onClick={() => onViewProfile(player.id)}
-              className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white p-1.5 rounded-lg transition-colors flex items-center justify-center"
-              title="View Profile"
-            >
-              <User size={16} />
-            </button>
-          )}
+        <div className="flex flex-col gap-2 relative z-10 mt-1">
+          <div className="flex justify-between gap-2">
+            {["👋", "❤️", "🔥", "🎉"].map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => onSendEmote(emoji)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-lg transition-colors flex items-center justify-center text-lg transform hover:scale-110 active:scale-95"
+                title={`Send ${emoji}`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
           <button
-            onClick={() => onCall(player.id, "video")}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg transition-colors flex items-center justify-center"
-            title="Video Call"
+            onClick={() => onSendEmote("Say Hiii! 👋")}
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1.5 px-3 rounded-lg transition-colors text-xs flex items-center justify-center gap-2 shadow-sm"
           >
-            <Video size={16} />
-          </button>
-          <button
-            onClick={() => onCall(player.id, "audio")}
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition-colors flex items-center justify-center"
-            title="Audio Call"
-          >
-            <Mic size={16} />
-          </button>
-          <button
-            onClick={onChat}
-            className="flex-1 bg-amber-500 hover:bg-amber-600 text-white p-1.5 rounded-lg transition-colors flex items-center justify-center"
-            title="Chat"
-          >
-            <MessageSquare size={16} />
+            <MessageSquare size={14} />
+            Say Hiii!
           </button>
         </div>
       </div>
@@ -191,22 +176,14 @@ export default function ProximityOverlay() {
     };
   }, []);
 
-  const handleCall = useCallback(
-    (playerId: string, type: "audio" | "video") => {
+  const handleSendEmote = useCallback(
+    (emoji: string) => {
       window.dispatchEvent(
-        new CustomEvent("initiateCall", { detail: { playerId, type } }),
+        new CustomEvent("sendEmote", { detail: { emoji } }),
       );
     },
     [],
   );
-
-  const handleChat = useCallback(() => {
-    window.dispatchEvent(new Event("openChat"));
-  }, []);
-
-  const handleViewProfile = useCallback((userId: string) => {
-    window.open(`/dashboard?user=${userId}`, "_blank", "noopener,noreferrer");
-  }, []);
 
   // Helper to calculate safe position
   const getSafePosition = useCallback((x: number, y: number) => {
@@ -244,9 +221,7 @@ export default function ProximityOverlay() {
             x={x}
             y={y}
             isBelow={isBelow}
-            onCall={handleCall}
-            onChat={handleChat}
-            onViewProfile={handleViewProfile}
+            onSendEmote={handleSendEmote}
           />
         );
       })}

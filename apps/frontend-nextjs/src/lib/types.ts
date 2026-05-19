@@ -23,12 +23,8 @@ export function tileToPixel(
 }
 
 export function isValidTile(tileX: number, tileY: number): boolean {
-  return (
-    tileX >= 1 &&
-    tileX < MAP_WIDTH_TILES - 1 &&
-    tileY >= 1 &&
-    tileY < MAP_HEIGHT_TILES - 1
-  );
+  // Free movement everywhere. Bounds are handled by Physics collideWorldBounds.
+  return true;
 }
 
 export interface User {

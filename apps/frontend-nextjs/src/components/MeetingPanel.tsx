@@ -21,6 +21,7 @@ interface MeetingPanelProps {
 
 export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: MeetingPanelProps) {
   const [isInMeeting, setIsInMeeting] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [showJoinPrompt, setShowJoinPrompt] = useState(false);
   const [meetingStartedBy, setMeetingStartedBy] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -100,7 +101,10 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
   const joinMeeting = useCallback(async () => {
     setShowJoinPrompt(false);
     const stream = await getLocalStream(camOn);
-    if (!stream) return;
+    if (!stream) {
+      alert("Microphone/Camera permission is required to join the meeting.");
+      return;
+    }
 
     setIsInMeeting(true);
     onSendSignal("meeting_joined", {});
@@ -121,7 +125,10 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
   // ── Owner starts meeting ──────────────────────────────────────────────────
   const startMeeting = useCallback(async () => {
     const stream = await getLocalStream(camOn);
-    if (!stream) return;
+    if (!stream) {
+      alert("Microphone/Camera permission is required to start the meeting.");
+      return;
+    }
     setIsInMeeting(true);
     onSendSignal("start_meeting", {});
   }, [camOn, getLocalStream, onSendSignal]);
@@ -326,23 +333,31 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
         </button>
       )}
 
-      {/* ── Meeting video grid ── */}
-      {isInMeeting && (
+      {/* ── Meeting video grid (Sidebar) ── */}
+      {isInMeeting && !isMinimized && (
         <div style={{
           position: "fixed",
-          inset: 0,
+          top: 72, // Moved down to avoid overlapping with main action buttons
+          right: 16,
+          bottom: 110,
+          width: "min(320px, calc(100vw - 32px))", // Responsive width for mobile
           zIndex: 300,
           display: "flex",
           flexDirection: "column",
-          background: "rgba(10,6,2,0.96)",
-          backdropFilter: "blur(16px)",
+          background: "rgba(10,6,2,0.85)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,210,140,0.2)",
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          overflow: "hidden",
+          animation: "slideInRight 0.3s ease",
         }}>
           {/* Header */}
           <div style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "14px 20px",
+            padding: "14px 16px",
             borderBottom: "1px solid rgba(255,210,140,0.1)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -350,11 +365,25 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
                 width: 8, height: 8, borderRadius: "50%", background: "#4ade80",
                 boxShadow: "0 0 8px #4ade80", animation: "pulse 1.5s infinite",
               }} />
-              <span style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,210,140,0.9)", fontFamily: "Inter" }}>
-                Cafe Meeting · {participants.length} people
+              <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,210,140,0.9)", fontFamily: "Inter" }}>
+                Meet ({participants.length})
               </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {/* Minimize */}
+              <button
+                onClick={() => setIsMinimized(true)}
+                title="Minimize Meeting"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 32, height: 32,
+                  background: "transparent", border: "none",
+                  cursor: "pointer", color: "rgba(255,210,140,0.8)",
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+              </button>
+              
               {/* Mic */}
               <MeetBtn onClick={toggleMic} active={micOn} icon={micOn ? <Mic size={16}/> : <MicOff size={16}/>} color={micOn ? "green" : "red"} />
               {/* Cam */}
@@ -364,28 +393,25 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
                 onClick={leaveMeeting}
                 style={{
                   display: "flex", alignItems: "center", gap: 6,
-                  padding: "8px 16px",
+                  padding: "6px 12px",
                   background: "rgba(239,68,68,0.2)",
                   border: "1px solid rgba(239,68,68,0.4)",
                   borderRadius: 20, cursor: "pointer",
-                  color: "#f87171", fontSize: 13, fontWeight: 600, fontFamily: "Inter",
+                  color: "#f87171", fontSize: 12, fontWeight: 600, fontFamily: "Inter",
                 }}
               >
-                <PhoneOff size={14} />
                 {myRole === "owner" ? "End" : "Leave"}
               </button>
             </div>
           </div>
 
-          {/* Video Grid */}
+          {/* Video Grid (Vertical Stack) */}
           <div style={{
             flex: 1,
-            display: "grid",
-            gridTemplateColumns: participants.length <= 1 ? "minmax(300px, 800px)" : "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 16,
-            padding: 24,
-            alignContent: "center",
-            justifyContent: "center",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            padding: 16,
             overflowY: "auto",
           }}>
             {/* Local video tile */}
@@ -413,12 +439,50 @@ export default function MeetingPanel({ myId, myName, myRole, onSendSignal }: Mee
         </div>
       )}
 
+      {/* ── Minimized Floating Button ── */}
+      {isInMeeting && isMinimized && (
+        <button
+          onClick={() => setIsMinimized(false)}
+          style={{
+            position: "fixed",
+            top: 72, // Moved down to avoid overlapping with the main top-right action buttons
+            right: 16,
+            zIndex: 300,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 16px",
+            background: "rgba(10,6,2,0.95)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,210,140,0.3)",
+            borderRadius: 30,
+            color: "rgba(255,210,140,0.95)",
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: "Inter, system-ui",
+            cursor: "pointer",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.7)",
+            animation: "fadeInScale 0.3s ease",
+          }}
+        >
+          <div style={{
+            width: 8, height: 8, borderRadius: "50%", background: "#4ade80",
+            boxShadow: "0 0 8px #4ade80", animation: "pulse 1.5s infinite",
+          }} />
+          Return to Meeting
+        </button>
+      )}
+
       <style>{`
         @keyframes fadeInScale {
           from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
           to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes slideInRight {
+          from { opacity: 0; transform: translateX(20px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
       `}</style>
     </>
   );

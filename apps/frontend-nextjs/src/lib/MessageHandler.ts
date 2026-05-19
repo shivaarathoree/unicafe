@@ -106,6 +106,9 @@ export class MessageHandler {
 
   private handleChat(data: Record<string, unknown>) {
     window.dispatchEvent(new CustomEvent("chatMessage", { detail: data }));
+    if (data.isEmoji) {
+      this.playerManager.showEmote(data.senderId as string, data.message as string);
+    }
   }
 
   private handleSpaceJoined(data: Record<string, unknown>) {

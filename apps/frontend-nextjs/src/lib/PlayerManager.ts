@@ -421,6 +421,41 @@ export class PlayerManager {
     });
   }
 
+  showEmote(playerId: string, emoji: string) {
+    let container: Phaser.GameObjects.Container | Phaser.Physics.Arcade.Sprite | undefined;
+    if (playerId === this.playerId) {
+      container = this.localPlayer;
+    } else {
+      container = this.players.get(playerId);
+    }
+    if (!container) return;
+
+    const x = container.x;
+    const y = container.y - 70; // Start above head
+
+    const text = this.scene.add.text(x, y, emoji, {
+      fontSize: "28px",
+      fontFamily: "system-ui",
+      resolution: 2,
+    });
+    text.setOrigin(0.5, 0.5);
+    text.setDepth(30000);
+
+    // Glowing premium feel: shadow effect
+    text.setShadow(0, 0, 'rgba(255,255,255,0.8)', 15, false, true);
+
+    // Float up and fade out animation
+    this.scene.tweens.add({
+      targets: text,
+      y: y - 50, // Float up by 50px
+      alpha: { from: 1, to: 0 },
+      scale: { from: 0.5, to: 1.5 },
+      duration: 2500,
+      ease: "Cubic.easeOut",
+      onComplete: () => text.destroy(),
+    });
+  }
+
   removePlayer(id: string) {
     const container = this.players.get(id);
     if (container) {

@@ -84,15 +84,21 @@ export default function RoomPage() {
       const { newOwnerId } = (e as CustomEvent).detail;
       if (newOwnerId === userId) setMyRole("owner");
     };
+    const onSendEmote = (e: Event) => {
+      const { emoji } = (e as CustomEvent).detail;
+      wsManagerRef.current?.send("chat", { message: emoji, isEmoji: true });
+    };
     window.addEventListener("openChat", onOpenChat);
     window.addEventListener("playerListUpdated", onPlayerList);
     window.addEventListener("localRoleAssigned", onRoleAssigned);
     window.addEventListener("ownerChanged", onOwnerChanged);
+    window.addEventListener("sendEmote", onSendEmote);
     return () => {
       window.removeEventListener("openChat", onOpenChat);
       window.removeEventListener("playerListUpdated", onPlayerList);
       window.removeEventListener("localRoleAssigned", onRoleAssigned);
       window.removeEventListener("ownerChanged", onOwnerChanged);
+      window.removeEventListener("sendEmote", onSendEmote);
     };
   }, [userId]);
 

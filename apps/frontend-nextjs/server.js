@@ -126,21 +126,7 @@ class Player {
   }
 }
 
-// Predefined guest seats (chair positions around the meeting table)
-const GUEST_SEATS = [
-  { tileX: 8,  tileY: 5,  x: 8*32+16,  y: 5*32+16  },
-  { tileX: 10, tileY: 5,  x: 10*32+16, y: 5*32+16  },
-  { tileX: 12, tileY: 5,  x: 12*32+16, y: 5*32+16  },
-  { tileX: 14, tileY: 5,  x: 14*32+16, y: 5*32+16  },
-  { tileX: 8,  tileY: 14, x: 8*32+16,  y: 14*32+16 },
-  { tileX: 10, tileY: 14, x: 10*32+16, y: 14*32+16 },
-  { tileX: 12, tileY: 14, x: 12*32+16, y: 14*32+16 },
-  { tileX: 14, tileY: 14, x: 14*32+16, y: 14*32+16 },
-  { tileX: 6,  tileY: 8,  x: 6*32+16,  y: 8*32+16  },
-  { tileX: 6,  tileY: 10, x: 6*32+16,  y: 10*32+16 },
-  { tileX: 16, tileY: 8,  x: 16*32+16, y: 8*32+16  },
-  { tileX: 16, tileY: 10, x: 16*32+16, y: 10*32+16 },
-];
+// GUEST_SEATS removed because all users can move freely
 
 function getOrCreateRoom(roomId, name) {
   if (!rooms.has(roomId)) {
@@ -150,12 +136,7 @@ function getOrCreateRoom(roomId, name) {
 }
 
 function assignSeat(room) {
-  const usedSeats = new Set();
-  room.players.forEach(p => { if (p.seatIndex >= 0) usedSeats.add(p.seatIndex); });
-  for (let i = 0; i < GUEST_SEATS.length; i++) {
-    if (!usedSeats.has(i)) return i;
-  }
-  return -1; // no seat available — spectator
+  return -1; // seats no longer assigned, everyone moves freely
 }
 
 // ─── Start server ──────────────────────────────────────────────────────────
@@ -351,23 +332,20 @@ app.prepare().then(() => {
       const playerId = userId || "p_" + socket.id;
       const player = new Player(playerId, name, character);
 
-      // Assign seat for guests, owner gets door spawn
+      // Everyone gets a random spawn near the door
       room.addPlayer(player);
-      if (player.role === "guest") {
-        const seatIdx = assignSeat(room);
-        player.seatIndex = seatIdx;
-        if (seatIdx >= 0) {
-          const seat = GUEST_SEATS[seatIdx];
-          player.tileX = seat.tileX;
-          player.tileY = seat.tileY;
-          player.x = seat.x;
-          player.y = seat.y;
-        }
-      } else {
-        // Owner starts near the music corner (top-left)
-        player.tileX = 4; player.tileY = 4;
-        player.x = 4*32+16; player.y = 4*32+16;
-      }
+      const spawnZones = [
+        { tileX: 25, tileY: 15 },
+        { tileX: 26, tileY: 15 },
+        { tileX: 27, tileY: 15 },
+        { tileX: 25, tileY: 16 },
+        { tileX: 26, tileY: 16 },
+      ];
+      const spawn = spawnZones[Math.floor(Math.random() * spawnZones.length)];
+      player.tileX = spawn.tileX;
+      player.tileY = spawn.tileY;
+      player.x = spawn.tileX * 32 + 16;
+      player.y = spawn.tileY * 32 + 16;
 
       sockets.set(socket.id, { roomId, playerId });
       socket.join(roomId);
@@ -408,16 +386,11 @@ app.prepare().then(() => {
       const player = room.players.get(playerId);
       if (!player) return;
 
-      // Only owner can move freely
-      if (player.role !== "owner") {
-        // Send back their seat position (enforce)
-        socket.emit("movement-rejected", { x: player.x, y: player.y, tileX: player.tileX, tileY: player.tileY });
-        return;
-      }
+      // Anyone can move freely
 
       const { tileX, tileY, x, y, direction } = data;
-      // Validate bounds
-      if (tileX < 1 || tileX > 20 || tileY < 1 || tileY > 16) {
+      // Validate bounds based on new map size (55x25)
+      if (tileX < 1 || tileX > 54 || tileY < 1 || tileY > 24) {
         socket.emit("movement-rejected", { x: player.x, y: player.y, tileX: player.tileX, tileY: player.tileY });
         return;
       }

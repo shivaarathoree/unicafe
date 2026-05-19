@@ -143,6 +143,13 @@ export default function MusicBar({ myRole }: MusicBarProps) {
 
   // ── Receive music state from server ─────────────────────────────────────
   useEffect(() => {
+    // Also listen for meeting start to lower volume
+    const handleMeetingStarted = () => {
+      setVolumeState(20);
+    };
+
+    window.addEventListener("meetingStarted", handleMeetingStarted);
+    
     const handler = (e: Event) => {
       const s = (e as CustomEvent).detail as MusicState;
       if (!s) return;
@@ -217,7 +224,10 @@ export default function MusicBar({ myRole }: MusicBarProps) {
       }
     };
     window.addEventListener("musicStateChanged", handler);
-    return () => window.removeEventListener("musicStateChanged", handler);
+    return () => {
+      window.removeEventListener("musicStateChanged", handler);
+      window.removeEventListener("meetingStarted", handleMeetingStarted);
+    };
   }, [isOwner, loadYouTubePlayer, volume, roomId]);
 
   // ── Volume changes ───────────────────────────────────────────────────────
