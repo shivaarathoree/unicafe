@@ -47,6 +47,8 @@ class GameScene extends Phaser.Scene {
 
     this.animationManager = new AnimationManager(this);
     this.animationManager.preload();
+
+    this.load.image("unidraw", "/tilesets/unidraw.png");
   }
 
   create() {
@@ -69,6 +71,26 @@ class GameScene extends Phaser.Scene {
     this.mapManager.create();
     const spawnTilePos = this.mapManager.getRandomSpawnPosition();
     const spawnPixel = tileToPixel(spawnTilePos.tileX, spawnTilePos.tileY);
+
+    // ── Unidraw Collaboration Board ──────────────────────────────────────
+    const unidrawBoard = this.add.image(142, 280, "unidraw");
+    unidrawBoard.setScale(0.08);
+    unidrawBoard.setInteractive({ useHandCursor: true });
+    unidrawBoard.setDepth(100);
+
+    this.tweens.add({
+      targets: unidrawBoard,
+      alpha: { from: 0.8, to: 1.0 },
+      scale: { from: 0.075, to: 0.085 },
+      yoyo: true,
+      repeat: -1,
+      duration: 1500,
+      ease: "Sine.easeInOut"
+    });
+
+    unidrawBoard.on("pointerdown", () => {
+      window.dispatchEvent(new CustomEvent("openWhiteboard"));
+    });
 
     // ── Connect via Socket.io (same host) ──────────────────────────────────
     const wsUrl = `${window.location.origin}/ws/${this.roomId}`;

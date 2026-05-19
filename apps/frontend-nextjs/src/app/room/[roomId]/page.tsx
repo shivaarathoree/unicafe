@@ -49,6 +49,7 @@ export default function RoomPage() {
   const [showParticipants, setShowParticipants] = useState(false);
   const [participants, setParticipants] = useState<Array<{ id: string; name: string }>>([]);
   const [myRole, setMyRole] = useState<Role>(null);
+  const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
   const wsManagerRef = useRef<WebSocketManager | null>(null);
 
   useEffect(() => {
@@ -88,17 +89,22 @@ export default function RoomPage() {
       const { emoji } = (e as CustomEvent).detail;
       wsManagerRef.current?.send("chat", { message: emoji, isEmoji: true });
     };
+    const onOpenWhiteboard = () => {
+      setIsWhiteboardOpen(true);
+    };
     window.addEventListener("openChat", onOpenChat);
     window.addEventListener("playerListUpdated", onPlayerList);
     window.addEventListener("localRoleAssigned", onRoleAssigned);
     window.addEventListener("ownerChanged", onOwnerChanged);
     window.addEventListener("sendEmote", onSendEmote);
+    window.addEventListener("openWhiteboard", onOpenWhiteboard);
     return () => {
       window.removeEventListener("openChat", onOpenChat);
       window.removeEventListener("playerListUpdated", onPlayerList);
       window.removeEventListener("localRoleAssigned", onRoleAssigned);
       window.removeEventListener("ownerChanged", onOwnerChanged);
       window.removeEventListener("sendEmote", onSendEmote);
+      window.removeEventListener("openWhiteboard", onOpenWhiteboard);
     };
   }, [userId]);
 
@@ -291,6 +297,91 @@ export default function RoomPage() {
           <span style={{ fontSize: 12, color: "rgba(255,210,140,0.6)", fontFamily: "Inter" }}>
             You're seated · waiting for the owner to start the meeting
           </span>
+        </div>
+      )}
+
+      {/* ── UniDraw Collaboration Whiteboard Modal ── */}
+      {isWhiteboardOpen && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 99999,
+          padding: 24
+        }}>
+          <div style={{
+            background: "rgba(20, 15, 10, 0.95)",
+            border: "1.5px solid rgba(255, 210, 140, 0.2)",
+            borderRadius: 20,
+            width: "90vw",
+            height: "85vh",
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.8)",
+            overflow: "hidden"
+          }}>
+            {/* Header */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px 24px",
+              borderBottom: "1px solid rgba(255, 210, 140, 0.1)",
+              background: "rgba(30, 22, 15, 0.5)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20 }}>🎨</span>
+                <h3 style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "#ffda8c",
+                  fontFamily: "Inter, system-ui",
+                  margin: 0
+                }}>
+                  UniDraw Whiteboard
+                </h3>
+                <span style={{
+                  fontSize: 10,
+                  color: "rgba(255, 210, 140, 0.5)",
+                  background: "rgba(255, 210, 140, 0.08)",
+                  padding: "2px 8px",
+                  borderRadius: 12,
+                  fontFamily: "Inter"
+                }}>
+                  Collaborative
+                </span>
+              </div>
+              <button
+                onClick={() => setIsWhiteboardOpen(false)}
+                style={{
+                  background: "rgba(239, 68, 68, 0.15)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  borderRadius: 10,
+                  color: "#ef4444",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: "6px 14px",
+                  cursor: "pointer",
+                  fontFamily: "Inter",
+                  transition: "all 0.15s"
+                }}
+              >
+                Close Board
+              </button>
+            </div>
+            {/* Iframe */}
+            <div style={{ flex: 1, width: "100%", height: "100%", background: "#fff" }}>
+              <iframe
+                src="https://unidraw.unisoul.store/"
+                style={{ width: "100%", height: "100%", border: "none" }}
+                allow="clipboard-read; clipboard-write; display-capture"
+              />
+            </div>
+          </div>
         </div>
       )}
 
